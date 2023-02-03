@@ -1,21 +1,7 @@
 const inquirer = require('inquirer');
-const { findAllRoles } = require('./db/util');
-// const db = require('./db');
-const db = require('./db/util');
+const db = require('./db/dbConstrutor');
 require('console.table');
-// using promisify from util
-// const util = require('util');
-// const { todoQuestions } = require('./helper/util');
-// const PORT = process.env.PORT || 3001;
 
-// const roles = ['Engineer', 'Finance', 'Legal', 'Sales', 'Service'];
-// const [Engineer, Finance, Legal, Sales, Service] = roles;
-
-// init to ask user what to do
-// then go to different section, adding, viewing, or updating
-// prompt to user for info for adding and updating
-// gather those input and put it into db
-// back to init
 init = () => {
     inquirer
         .prompt([
@@ -33,7 +19,7 @@ init = () => {
             } else if (response.todo === 'Add Employee') {
                 addEmployee();
             } else if (response.todo === 'Update Employee Role') {
-                updateEmployeeRole();
+                changeEmployeeRole();
             } else if (response.todo === 'View All Roles') {
                 viewAllRoles();
             } else if (response.todo === 'Add Role') {
@@ -43,11 +29,42 @@ init = () => {
             } else if (response.todo === 'Add Department') {
                 addDepartment();
             } else if (response.todo === 'Quit') {
-                Connection.end();
+                db.end();
             }
         })
 }
 
+// --------- Viewing data base
+viewAllEmployees = () => {
+    // id, first name, last name, title, department, salary, manager
+    db.findAllEmployees()
+    .then(([rows]) => {
+        let employee = rows;
+        console.table(employee);
+    })
+    .then(() => init());
+}
+
+viewAllRoles = () => {
+    // id title department salary
+    db.findAllRoles()
+    .then(([rows]) => {
+        let roles = rows;
+        console.table(roles);
+    })
+    .then(() => init());
+}
+
+viewAllDepartments = () => {
+    db.findAllDepartment()
+    .then(([rows])=> {
+        let departments = rows;
+        console.table(departments)
+    })
+    .then(() => init());
+}
+
+// --------- adding to data base
 addEmployee = () => {
     inquirer.prompt([
         {
@@ -65,7 +82,7 @@ addEmployee = () => {
         let first = response.firstName;
         let last = response.lastName;
         db.findAllRoles().then(([rows]) => {
-            //[[id, first_name, last_name, role, department], [id, first_name, last_name, role, department]]
+
             let roles = rows;
             const roleChoices = roles.map(({id, title}) => ({
                 name: title,
@@ -83,13 +100,12 @@ addEmployee = () => {
                 let roleId = response.roleId;
                 db.findAllEmployees()
                 .then(([rows]) => {
-                    // rows
                     let employees = rows;
                     const managerChoices = employees.map(({id, first_name, last_name}) => ({
                         name: `${first_name} ${last_name}`,
                         value: id
                     }))
-                    managerChoices.unshift({name:'none', value: NULL})
+                    managerChoices.unshift({name:'none', value: null})
                     inquirer.prompt([
                         {
                             type: 'list',
@@ -99,8 +115,9 @@ addEmployee = () => {
                         }
                     ])
                     .then(response => {
+                        console.log(response.managerId.value);
                         let employee = {
-                            manger_id: response.managerId,
+                            manager_id: response.managerId,
                             role_id: roleId,
                             first_name: first,
                             last_name: last
@@ -108,16 +125,75 @@ addEmployee = () => {
                         db.createEmployee (employee);
                     })
                     .then(()=> {
-                        console.log('employee has added to the data base.')
+                        console.log('----- New employee has added to the data base.')
+                        init();
                     })
-                    .then(() => init())
+                    // .then(() => )
                 })
             })
         })
     })
 }
 
-updateEmployeeRole = () => {
+addDepartment = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'department',
+            message: 'What is the name of the department?',
+        }
+    ])
+    .then((response) => {
+        db.createDepartment(response.department);
+    })
+    .then(() => {
+        console.log('----- New department has added to the data base.');
+        init()
+    })
+}
+
+addRole = () => {
+    db.findAllDepartment()
+    .then(([rows]) => {
+        let departments = rows;
+        const departmentChoices = departments.map(({id, department}) => {
+            return {name: department, value: id};
+        })
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'title',
+                message: 'What is the name of the role?',
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'What is the salary of the role?'
+            },
+            {
+                type: 'list',
+                name: 'departmentId',
+                message: 'Which department does the role belongs to?',
+                choices: departmentChoices
+            }
+        ])
+        .then((response) => {
+            let role = {
+                title: response.title,
+                salary: response.salary,
+                department_id: response.departmentId
+            }
+            db.createRole(role);
+        })
+        .then(() => {
+            console.log(`----- ${role.title} has added to the database.`);
+            init();
+        });
+    })
+}
+
+// ------------ update employee role
+changeEmployeeRole = () => {
     db.findAllEmployees()
     .then(([rows]) => {
         let employees = rows;
@@ -134,115 +210,36 @@ updateEmployeeRole = () => {
             }
         ])
         .then((response) => {
-            let employeeId = response.employeeId;
-            db.findAllRoles
+            let employee = response.employeeId;
+            db.findAllRoles()
+            .then(([rows]) => {
+                let roles = rows;
+                const roleChoices = roles.map(({id, title}) => ({
+                    name: title,
+                    value: id
+                }))
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'roleId',
+                        message: 'Which role do you want to assign the selected employee?',
+                        choices: roleChoices
+                    }
+                ])
+                .then((response) => {
+                    let role = response.roleId;
+                    db.updateEmployeeRole(employee, role);
+                })
+                .then(()=> {
+                    console.log('Updated employee\'s role');
+                    init();
+                })
+            })
         })
     })
 }
 
 
-
-
-
-
-
-
-
-
-addDepartment = () => {
-    inquirer.prompt([
-        {
-            type: 'input',
-            name: 'department',
-            message: 'What is the name of the department?',
-        }
-    ])
-    .then((response) => {
-        db.query('INSERT INTO department VALUES (?)', response.department, (req, res) => {
-            if (err) console.error(err);
-        })
-    })
-}
-
-addRole = () => {
-    inquirer.prompt([
-        {
-            type: 'input',
-            name: 'role',
-            message: 'What is the name of the role?',
-        },
-        {
-            type: 'input',
-            name: 'salary',
-            message: 'What is the salary of the role?'
-        },
-        {
-            type: 'list',
-            name: 'department',
-            message: 'Which department does the role belong to?',
-            choices: []
-        }
-    ])
-    .then((response) => {
-        db.query('INSERT INTO department VALUES (?)', response.department, (req, res) => {
-            if (err) console.error(err);
-        })
-    })
-}
-
-// id, first name, last name, title, department, salary, manager
-viewAllEmployees = () => {
-    db.findAllEmployees()
-    .then(([rows])=> {
-        let employee = rows;
-        console.table(employee);
-    })
-    .then(()=> init());
-}
-
-// id title department salary
-viewAllRoles = () => {
-    db.query('SELECT role.id AS id, title AS role, department.name AS department, salary FROM role JOIN department ON role.department_id = department.id', 
-    (err, result) => {
-        if (err) {
-            console.error(err);
-        } else {
-            console.table(result);
-
-        }
-    })
-}
-
-viewAllDepartments = () => {
-    db.query('SELECT department.id AS id, name FROM department', (err, result) => {
-        if (err) {
-            console.error(err);
-        } else {
-            console.table(result);
-        }
-    })
-}
 
 
 init();
-
-            // switch (response.todo) {
-            //     case 'View All Employee':
-            //         viewing('View All Employees')
-            //     case 'Add Employee':
-            //         adding('Add Employee');
-            //     case 'Update Employee Role':
-            //         updating();
-            //     case 'View All Roles':
-            //         viewing('View All Roles')
-            //     case 'Add Role':
-            //         adding('Add Employee');
-            //     case 'View All Departments':
-            //         viewing('View All Departments')
-            //     case 'Add Department':
-            //         adding('Add Employee');
-            //     case 'Quit':
-            //         Connection.end();
-            //     default: 
-            //         console.log('in switch');
-            // }
