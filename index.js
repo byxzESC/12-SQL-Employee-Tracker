@@ -52,20 +52,6 @@ viewAllEmployees = () => {
     db.findAllEmployees()
     .then(([rows]) => {
         let employee = rows;
-        // console.log(employee[1].manager)
-        // const allEmployee = employee.map( ({id, first_name, last_name, role, department, salary, manager}) => {
-        //     const managerName = manager !== null ?  db.findManager(manager) : null;
-        //     return {
-        //     id: id,
-        //     first_name: first_name,
-        //     last_name: last_name,
-        //     title: role,
-        //     department: department,
-        //     salary: salary,
-        //     manager: managerName
-        //     }
-        // });
-        // const resolvedEmployees = await Promise.all(allEmployee);
         console.table(employee);
     })
     .then(() => init());

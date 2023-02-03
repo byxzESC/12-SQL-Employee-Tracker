@@ -51,27 +51,7 @@ class DB {
                 }
         )
     }
-        // this.connection.query(
-        //     `SELECT first_name, 
-        //     last_name 
-        //     FROM employee 
-        //     WHERE role_id = (
-        //         SELECT manager_id 
-        //         FROM employees 
-        //         WHERE id = ?)`, [managerId], (err, response) => {
-        //             if (err) console.error(err);
-        //             let managerName = `${response[0].first_name} ${response[0].last_name}`;
-        //             return managerName;
-        //         }
-        // )
-
-        // .then((response) => {
-        //     if (err) console.error(err);
-        //     let managerName = `${response[0].first_name} ${response[0].last_name}`;
-        //     return managerName;
-        // });
-    // }
-
+    
     createEmployee (employee) {
         return this.promise.query(
             'INSERT INTO employee SET ?;', employee
