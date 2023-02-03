@@ -10,7 +10,7 @@ init = () => {
                 type: 'list',
                 name: 'todo',
                 message: 'What would you like to do?',
-                choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit']
+                choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'View budgets for Departments', 'Quit']
             }
         ])
         .then((response) => {
@@ -29,10 +29,21 @@ init = () => {
                 viewAllDepartments();
             } else if (response.todo === 'Add Department') {
                 addDepartment();
+            } else if (response.todo === 'View budgets for Departments') {
+                viewBudge();
             } else if (response.todo === 'Quit') {
                 db.end();
             }
         })
+}
+
+// --- EXTRA CREDIT --- Application allows users to view the total utilized budget of a department—in other words, the combined salaries of all employees in that department (8 points).
+viewBudge = () => {
+    db.budge()
+    .then(([rows]) => {
+        console.table(rows);
+    })
+    .then(() => init());
 }
 
 // --------- Viewing data base

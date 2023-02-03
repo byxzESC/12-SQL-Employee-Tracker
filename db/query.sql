@@ -28,6 +28,8 @@
 
 -- UPDATE employee SET role_id = 3 WHERE id = 8;
 
-SELECT department, SUM(role.salary) as total_salary
-    FROM role
-    GROUP BY department;
+SELECT department.name AS department, SUM(role.salary) AS total_salary
+FROM department
+JOIN role
+ON department.id = role.department_id
+GROUP BY department.name;

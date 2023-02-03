@@ -6,13 +6,15 @@ class DB {
         this.promise = this.connection.promise();
     }
 
-    // budge() {
-    //     return this.promise.query(
-    //         `SELECT department, SUM(salary) as total_salary
-    //         FROM role
-    //         GROUP BY department;`
-    //     )
-    // }
+    budge() {
+        return this.promise.query(
+            `SELECT department.name AS department, SUM(role.salary) AS total_salary
+            FROM department
+            JOIN role
+            ON department.id = role.department_id
+            GROUP BY department.name;`
+        )
+    }
 
     findAllEmployees () {
         return this.promise.query(
