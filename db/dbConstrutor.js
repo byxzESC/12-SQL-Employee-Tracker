@@ -8,35 +8,39 @@ class DB {
 
     budge() {
         return this.promise.query(
-            `SELECT department.name AS department, SUM(role.salary) AS total_salary
-            FROM department
-            JOIN role
-            ON department.id = role.department_id
-            GROUP BY department.name;`
+            `SELECT 
+              department.name AS department, SUM(role.salary) AS total_salary
+            FROM 
+              department JOIN role ON department.id = role.department_id
+              GROUP BY department.name;`
         )
     }
 
     findAllEmployees () {
         return this.promise.query(
-            `SELECT employee.id AS id, 
-            first_name, 
-            last_name, 
-            role.title AS role, 
-            department.name AS department, 
-            role.salary, 
-            manager_id AS manager 
-            FROM employee 
-            JOIN role ON employee.role_id = role.id 
-            JOIN department ON role.department_id = department.id 
-            ORDER BY employee.id;`,
+            `SELECT 
+              employee.id AS id, 
+              employee.first_name, 
+              employee.last_name, 
+              role.title AS role, 
+              department.name AS department, 
+              role.salary, 
+              CONCAT(manager_table.first_name, ' ', manager_table.last_name) AS manager
+            FROM 
+              employee JOIN role ON employee.role_id = role.id 
+                JOIN department ON role.department_id = department.id 
+                JOIN employee AS manager_table ON manager_table.id = employee.manager_id
+              ORDER BY employee.id;`,
         )
     }
 
     findManager (managerId) {
         return this.promise.query(
-            `SELECT first_name, 
-            last_name 
-            FROM employees 
+            `SELECT 
+              first_name, 
+              last_name 
+            FROM 
+              employees 
             WHERE role_id = (
                 SELECT manager_id 
                 FROM employees 
@@ -82,13 +86,13 @@ class DB {
 
     findAllRoles () {
         return this.promise.query(
-            `SELECT role.id, 
-            role.title, 
-            department.name AS department, 
-            role.salary 
-            FROM role 
-            LEFT JOIN department 
-            ON role.department_id = department.id;`
+            `SELECT 
+              role.id, 
+              role.title, 
+              department.name AS department, 
+              role.salary 
+            FROM 
+              role LEFT JOIN department ON role.department_id = department.id;`
         )
     }
 
