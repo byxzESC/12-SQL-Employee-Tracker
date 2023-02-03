@@ -27,3 +27,7 @@
 --             ORDER BY employee.id;
 
 -- UPDATE employee SET role_id = 3 WHERE id = 8;
+
+SELECT department, SUM(role.salary) as total_salary
+    FROM role
+    GROUP BY department;

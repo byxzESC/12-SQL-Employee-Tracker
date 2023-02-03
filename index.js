@@ -1,4 +1,5 @@
 const inquirer = require('inquirer');
+const { findManager } = require('./db/dbConstrutor');
 const db = require('./db/dbConstrutor');
 require('console.table');
 
@@ -40,6 +41,20 @@ viewAllEmployees = () => {
     db.findAllEmployees()
     .then(([rows]) => {
         let employee = rows;
+        // console.log(employee[1].manager)
+        // const allEmployee = employee.map( ({id, first_name, last_name, role, department, salary, manager}) => {
+        //     const managerName = manager !== null ?  db.findManager(manager) : null;
+        //     return {
+        //     id: id,
+        //     first_name: first_name,
+        //     last_name: last_name,
+        //     title: role,
+        //     department: department,
+        //     salary: salary,
+        //     manager: managerName
+        //     }
+        // });
+        // const resolvedEmployees = await Promise.all(allEmployee);
         console.table(employee);
     })
     .then(() => init());
@@ -115,7 +130,6 @@ addEmployee = () => {
                         }
                     ])
                     .then(response => {
-                        console.log(response.managerId.value);
                         let employee = {
                             manager_id: response.managerId,
                             role_id: roleId,
@@ -135,6 +149,7 @@ addEmployee = () => {
     })
 }
 
+// -------- add a new department to the database
 addDepartment = () => {
     inquirer.prompt([
         {
@@ -152,6 +167,7 @@ addDepartment = () => {
     })
 }
 
+// -------- add a new role to the database
 addRole = () => {
     db.findAllDepartment()
     .then(([rows]) => {
@@ -186,7 +202,7 @@ addRole = () => {
             db.createRole(role);
         })
         .then(() => {
-            console.log(`----- ${role.title} has added to the database.`);
+            console.log(`----- New Role has added to the database.`);
             init();
         });
     })
