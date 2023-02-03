@@ -31,7 +31,7 @@ To install necessary dependencies, run the following command:
 
 ## Usage
 
-[Demonstration video](https://drive.google.com/file/d/1fB5f8p_esXW1X0kt0rkwiPkTqhVjifg4/view)
+Here is the [Demonstration video](https://drive.google.com/file/d/1fB5f8p_esXW1X0kt0rkwiPkTqhVjifg4/view)
 
 Step1: run following command in your terminal:
 
